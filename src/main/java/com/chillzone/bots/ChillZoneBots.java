@@ -1,5 +1,6 @@
 package com.chillzone.bots;
 
+import carpet.CarpetSettings;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
@@ -15,7 +16,12 @@ public final class ChillZoneBots implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("chillzonebots");
 
     @Override public void onInitialize() {
-        LOGGER.info("Chill Zone Bots V2 loading: nine-bot roster.");
+        LOGGER.info("Chill Zone Bots V3 loading: identity/presentation test.");
+        // Carpet 26.2 normally hides fake players from the multiplayer server-list sample.
+        // V3 deliberately enables Carpet's supported listing path so the server can expose
+        // the fake-player GameProfile names instead of anonymous placeholders.
+        CarpetSettings.allowListingFakePlayers = true;
+        LOGGER.info("Carpet allowListingFakePlayers enabled by Chill Zone Bots.");
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             var root=Commands.literal("bots");
             var spawn=Commands.literal("spawn");

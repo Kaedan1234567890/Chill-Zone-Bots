@@ -1,0 +1,37 @@
+Chill Zone Bots V3 — Identity / Presentation Test
+
+Changes:
+- Replaced the original nine names with uncommon <=16-character bot identities:
+  Team 1: MapleCrate73, CopperFox271, RiftKnight82
+  Team 2: PixelMoth47, MossyPickaxe91, VexRaptor63
+  Team 3: BirchByte58, FrostAxolotl72, RedstoneRily84
+- Keeps all V2 spawn/leave/team/all commands.
+- Manual command feedback remains private to the command source (broadcast=false).
+- Enables Carpet 26.2's built-in allowListingFakePlayers setting at mod initialization.
+  Carpet's own source says this setting controls whether EntityPlayerMPFake.allowsListing()
+  returns true for the multiplayer screen/server player sample.
+- No skins yet.
+- No AI/jobs yet.
+- Server-side only.
+
+Important identity limitation:
+Carpet 26.2's createFake(String username, ...) itself chooses/resolves the UUID. If a real
+Mojang profile exists for a chosen name, Carpet can resolve/fetch that profile. V3 therefore
+uses uncommon names to reduce collision risk rather than pretending we can inject arbitrary
+UUIDs through Carpet's public createFake method.
+
+Test:
+1. GitHub Actions must compile green.
+2. Replace V2 JAR with V3 JAR; do not leave both installed.
+3. Restart server.
+4. /bots spawn all
+5. Check overhead names.
+6. Check TAB.
+7. Disconnect and hover the server player count.
+8. /bots leave all
+
+If a third-party TAB/player-list component still says "Unable to find corresponding user for UUID",
+that component is doing its own UUID -> account lookup. That is separate from vanilla/Carpet
+GameProfile names and should be identified before another code change.
+
+Compile status: NOT claimed until GitHub Actions is green.
