@@ -1,0 +1,8 @@
+Fix3 — command visibility test
+- Removed the /bots root permission predicate so the command cannot disappear merely because
+  the command source does not satisfy our permission check.
+- /bots, /bots status, /bots spawn MapleCrate, and /bots remove MapleCrate remain.
+- This is intentionally a foundation/debug build. Add LuckPerms/owner permissions after the
+  command and Carpet fake-player spawn are proven on the real server.
+- Server-side only.
+- Compile status is NOT claimed until GitHub Actions is green.

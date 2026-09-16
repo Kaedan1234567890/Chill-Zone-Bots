@@ -19,7 +19,6 @@ public final class ChillZoneBots implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(Commands.literal("bots")
-                    .requires(source -> source.permissions().hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_GAMEMASTER))
 
                     .then(Commands.literal("spawn")
                             .then(Commands.literal("MapleCrate")
