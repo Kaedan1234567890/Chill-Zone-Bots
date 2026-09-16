@@ -1,0 +1,5 @@
+Fix1: Minecraft 26.2 no longer exposes CommandSourceStack.hasPermission(int).
+Changed the /bots permission requirement to the 26.2 permission API already used by the Zenith project:
+source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
+No other bot behavior was changed.
+Compile status: NOT locally confirmed; GitHub Actions remains authoritative.
