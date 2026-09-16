@@ -1,8 +1,10 @@
 package com.chillzone.bots;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,87 +12,88 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class ChillZoneBots implements ModInitializer {
-    public static final String MOD_ID = "chillzonebots";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final Logger LOGGER = LoggerFactory.getLogger("chillzonebots");
 
-    @Override
-    public void onInitialize() {
-        LOGGER.info("Chill Zone Bots V1 loading: MapleCrate foundation test.");
-
+    @Override public void onInitialize() {
+        LOGGER.info("Chill Zone Bots V2 loading: nine-bot roster.");
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(Commands.literal("bots")
+            var root=Commands.literal("bots");
+            var spawn=Commands.literal("spawn");
+            var leave=Commands.literal("leave");
+            var remove=Commands.literal("remove");
 
-                    .then(Commands.literal("spawn")
-                            .then(Commands.literal("MapleCrate")
-                                    .executes(context -> {
-                                        ServerPlayer caller;
-                                        try {
-                                            caller = context.getSource().getPlayerOrException();
-                                        } catch (Exception ex) {
-                                            context.getSource().sendFailure(
-                                                    Component.literal("Run this command in-game for V1 so MapleCrate has a spawn position.")
-                                            );
-                                            return 0;
-                                        }
-
-                                        boolean started = BotManager.spawnAt(
-                                                context.getSource().getServer(),
-                                                caller,
-                                                BotRoster.MAPLE_CRATE
-                                        );
-
-                                        if (!started) {
-                                            context.getSource().sendFailure(
-                                                    Component.literal("MapleCrate is already online or Carpet could not start the spawn.")
-                                            );
-                                            return 0;
-                                        }
-
-                                        context.getSource().sendSuccess(
-                                                () -> Component.literal("Spawning MapleCrate — Team 1 Surface Gatherer."),
-                                                true
-                                        );
-                                        return Command.SINGLE_SUCCESS;
-                                    })))
-
-                    .then(Commands.literal("remove")
-                            .then(Commands.literal("MapleCrate")
-                                    .executes(context -> {
-                                        boolean removed = BotManager.remove(
-                                                context.getSource().getServer(),
-                                                BotRoster.MAPLE_CRATE
-                                        );
-
-                                        if (!removed) {
-                                            context.getSource().sendFailure(
-                                                    Component.literal("MapleCrate is not currently online as a Carpet fake player.")
-                                            );
-                                            return 0;
-                                        }
-
-                                        context.getSource().sendSuccess(
-                                                () -> Component.literal("MapleCrate removed. Minecraft/Carpet player data will be reused next spawn."),
-                                                true
-                                        );
-                                        return Command.SINGLE_SUCCESS;
-                                    })))
-
-                    .then(Commands.literal("status")
-                            .executes(context -> {
-                                boolean online = BotManager.isOnline(
-                                        context.getSource().getServer(),
-                                        BotRoster.MAPLE_CRATE
-                                );
-                                context.getSource().sendSuccess(
-                                        () -> Component.literal(
-                                                "MapleCrate | Team 1 | Surface Gatherer | " +
-                                                        (online ? "ONLINE" : "OFFLINE")
-                                        ),
-                                        false
-                                );
-                                return Command.SINGLE_SUCCESS;
-                            }))
-            );
+            for (BotProfile bot: BotRoster.ALL) {
+                spawn.then(Commands.literal(bot.username()).executes(c -> spawnOne(c,bot)));
+                leave.then(Commands.literal(bot.username()).executes(c -> removeOne(c,bot)));
+                remove.then(Commands.literal(bot.username()).executes(c -> removeOne(c,bot)));
+            }
+            for (String team: new String[]{"team1","team2","team3"}) {
+                spawn.then(Commands.literal(team).executes(c -> spawnGroup(c,team)));
+                leave.then(Commands.literal(team).executes(c -> removeGroup(c,team)));
+                remove.then(Commands.literal(team).executes(c -> removeGroup(c,team)));
+            }
+            spawn.then(Commands.literal("all").executes(this::spawnAll));
+            leave.then(Commands.literal("all").executes(this::removeAll));
+            remove.then(Commands.literal("all").executes(this::removeAll));
+            root.then(spawn); root.then(leave); root.then(remove);
+            root.then(Commands.literal("status").executes(this::status));
+            dispatcher.register(root);
         });
     }
+
+    private int spawnOne(CommandContext<CommandSourceStack> c, BotProfile bot) {
+        ServerPlayer caller;
+        try { caller=c.getSource().getPlayerOrException(); }
+        catch(Exception e){ c.getSource().sendFailure(Component.literal("Run spawn commands in-game for V2.")); return 0; }
+        if(!BotManager.spawnAt(c.getSource().getServer(),caller,bot)){
+            c.getSource().sendFailure(Component.literal(bot.username()+" is already online or could not spawn.")); return 0;
+        }
+        c.getSource().sendSuccess(() -> Component.literal("Spawned "+bot.username()+" | "+team(bot.team())+" | "+role(bot.role())), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int spawnGroup(CommandContext<CommandSourceStack> c,String team) {
+        ServerPlayer caller;
+        try { caller=c.getSource().getPlayerOrException(); }
+        catch(Exception e){ c.getSource().sendFailure(Component.literal("Run spawn commands in-game for V2.")); return 0; }
+        int n=0;
+        for(BotProfile b:BotRoster.ALL) if(b.team().equals(team)&&BotManager.spawnAt(c.getSource().getServer(),caller,b)) n++;
+        int x=n; c.getSource().sendSuccess(() -> Component.literal("Spawned "+x+" bot(s) from "+team(team)+"."),false);
+        return n>0?Command.SINGLE_SUCCESS:0;
+    }
+
+    private int spawnAll(CommandContext<CommandSourceStack> c) {
+        ServerPlayer caller;
+        try { caller=c.getSource().getPlayerOrException(); }
+        catch(Exception e){ c.getSource().sendFailure(Component.literal("Run /bots spawn all in-game for V2.")); return 0; }
+        int n=0; for(BotProfile b:BotRoster.ALL) if(BotManager.spawnAt(c.getSource().getServer(),caller,b)) n++;
+        int x=n; c.getSource().sendSuccess(() -> Component.literal("Spawned "+x+" Chill Zone bot(s)."),false);
+        return n>0?Command.SINGLE_SUCCESS:0;
+    }
+
+    private int removeOne(CommandContext<CommandSourceStack> c,BotProfile b) {
+        if(!BotManager.remove(c.getSource().getServer(),b)){ c.getSource().sendFailure(Component.literal(b.username()+" is not online as a managed Carpet bot.")); return 0; }
+        c.getSource().sendSuccess(() -> Component.literal(b.username()+" left the server."),false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int removeGroup(CommandContext<CommandSourceStack> c,String team) {
+        int n=0; for(BotProfile b:BotRoster.ALL) if(b.team().equals(team)&&BotManager.remove(c.getSource().getServer(),b)) n++;
+        int x=n; c.getSource().sendSuccess(() -> Component.literal("Removed "+x+" bot(s) from "+team(team)+"."),false);
+        return n>0?Command.SINGLE_SUCCESS:0;
+    }
+
+    private int removeAll(CommandContext<CommandSourceStack> c) {
+        int n=0; for(BotProfile b:BotRoster.ALL) if(BotManager.remove(c.getSource().getServer(),b)) n++;
+        int x=n; c.getSource().sendSuccess(() -> Component.literal("Removed "+x+" Chill Zone bot(s)."),false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int status(CommandContext<CommandSourceStack> c) {
+        StringBuilder s=new StringBuilder("Chill Zone Bots: "); boolean first=true;
+        for(BotProfile b:BotRoster.ALL){ if(!first)s.append(" | "); first=false; s.append(b.username()).append(":").append(BotManager.isOnline(c.getSource().getServer(),b)?"ON":"OFF"); }
+        c.getSource().sendSuccess(() -> Component.literal(s.toString()),false); return Command.SINGLE_SUCCESS;
+    }
+    private static String team(String s){return switch(s){case "team1"->"Team 1";case "team2"->"Team 2";case "team3"->"Team 3";default->s;};}
+    private static String role(String s){return switch(s){case "surface_gatherer"->"Surface Gatherer";case "miner"->"Miner";case "fighter"->"Fighter";default->s;};}
 }

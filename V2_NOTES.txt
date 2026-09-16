@@ -1,0 +1,9 @@
+All nine roster bots are spawnable individually.
+Commands:
+ /bots spawn <name|team1|team2|team3|all>
+ /bots leave <name|team1|team2|team3|all>
+ /bots remove <name|team1|team2|team3|all> (legacy alias)
+ /bots status
+Manual command feedback uses broadcast=false, so it is not a public bot chat message.
+Schedules, skins, AI/jobs and the tab/server-hover presentation fix are later milestones.
+Server-side only. Not compile-confirmed until GitHub Actions is green.
