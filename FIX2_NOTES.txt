@@ -1,0 +1,4 @@
+Fix2: corrected the Minecraft 26.2 Permissions package.
+Uses fully-qualified net.minecraft.server.permissions.Permissions.COMMANDS_GAMEMASTER.
+No bot behavior changed.
+Compile status: not claimed until GitHub Actions is green.
