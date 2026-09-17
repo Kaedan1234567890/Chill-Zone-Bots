@@ -1,5 +1,6 @@
 package com.chillzone.bots;
 
+import carpet.CarpetSettings;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -18,6 +19,11 @@ public final class BotManager {
         if (isOnline(server, profile)) {
             return false;
         }
+
+        // Reinforce the listing rule immediately before Carpet creates the fake player.
+        // This prevents a world Carpet config from leaving our managed bots anonymous in
+        // the multiplayer server-list hover sample.
+        CarpetSettings.allowListingFakePlayers = true;
 
         Vec3 pos = anchor.position();
         return EntityPlayerMPFake.createFake(

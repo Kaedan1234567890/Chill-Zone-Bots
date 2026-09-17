@@ -1,0 +1,22 @@
+FIX4 — TAB + multiplayer server-list identity
+
+1. TAB list
+- Adds a ServerPlayer mixin for getTabListDisplayName().
+- Only managed Chill Zone Carpet fake players are affected.
+- Their TAB display text is forced to the exact BotRoster username.
+- Real players and unrelated Carpet fake players are left untouched.
+
+2. Multiplayer server-list hover
+- Carpet fake players only allow server-list sampling when allowListingFakePlayers is true.
+- The previous build set the field during mod initialization, but Carpet/world settings can load afterward and reset it.
+- FIX4 reapplies the rule at SERVER_STARTED and immediately before each managed bot spawn.
+
+3. Existing working behavior
+- Spawn/remove commands and overhead entity nametags are otherwise unchanged.
+- Server-side only.
+
+Expected test
+- Restart server with FIX4.
+- Spawn MapleCrate73.
+- TAB should show exactly MapleCrate73.
+- Leave to multiplayer menu / refresh the server entry. The hover player sample should show MapleCrate73 rather than Anonymous Player (subject to the normal sample limit).

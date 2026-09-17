@@ -4,10 +4,14 @@
   "version": "${version}",
   "name": "Chill Zone Bots",
   "description": "Server-side managed Carpet fake players for the Chill Zone SMP.",
-  "authors": ["Chill Zone"],
+  "authors": [
+    "Chill Zone"
+  ],
   "environment": "server",
   "entrypoints": {
-    "main": ["com.chillzone.bots.ChillZoneBots"]
+    "main": [
+      "com.chillzone.bots.ChillZoneBots"
+    ]
   },
   "depends": {
     "fabricloader": ">=0.19.3",
@@ -15,5 +19,8 @@
     "java": ">=25",
     "fabric-api": "*",
     "carpet": ">=26.2"
-  }
+  },
+  "mixins": [
+    "chillzonebots.mixins.json"
+  ]
 }

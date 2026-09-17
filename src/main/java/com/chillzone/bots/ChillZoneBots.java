@@ -5,6 +5,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -16,12 +17,15 @@ public final class ChillZoneBots implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("chillzonebots");
 
     @Override public void onInitialize() {
-        LOGGER.info("Chill Zone Bots V3 loading: identity/presentation test.");
+        LOGGER.info("Chill Zone Bots FIX4 loading: TAB + server-list identity fix.");
         // Carpet 26.2 normally hides fake players from the multiplayer server-list sample.
         // V3 deliberately enables Carpet's supported listing path so the server can expose
         // the fake-player GameProfile names instead of anonymous placeholders.
-        CarpetSettings.allowListingFakePlayers = true;
-        LOGGER.info("Carpet allowListingFakePlayers enabled by Chill Zone Bots.");
+        // Carpet loads its world rules after mods initialize, so setting this only here can
+        // be overwritten back to false. Set it now and again once the server has started.
+        enableFakePlayerListing("mod initialization");
+        ServerLifecycleEvents.SERVER_STARTED.register(server ->
+                enableFakePlayerListing("server started"));
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             var root=Commands.literal("bots");
             var spawn=Commands.literal("spawn");
@@ -100,6 +104,11 @@ public final class ChillZoneBots implements ModInitializer {
         for(BotProfile b:BotRoster.ALL){ if(!first)s.append(" | "); first=false; s.append(b.username()).append(":").append(BotManager.isOnline(c.getSource().getServer(),b)?"ON":"OFF"); }
         c.getSource().sendSuccess(() -> Component.literal(s.toString()),false); return Command.SINGLE_SUCCESS;
     }
+    private static void enableFakePlayerListing(String phase) {
+        CarpetSettings.allowListingFakePlayers = true;
+        LOGGER.info("Carpet allowListingFakePlayers=true ({})", phase);
+    }
+
     private static String team(String s){return switch(s){case "team1"->"Team 1";case "team2"->"Team 2";case "team3"->"Team 3";default->s;};}
     private static String role(String s){return switch(s){case "surface_gatherer"->"Surface Gatherer";case "miner"->"Miner";case "fighter"->"Fighter";default->s;};}
 }

@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.chillzone.bots.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ServerPlayerTabNameMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
